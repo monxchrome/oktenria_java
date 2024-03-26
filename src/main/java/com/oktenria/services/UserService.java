@@ -15,10 +15,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public List<User> getUsers() {
-        return userRepository.findAll();
-    }
-
     public Optional<User> getById(ObjectId id) {
         return userRepository.findById(id);
     }
@@ -44,14 +40,6 @@ public class UserService {
             userRepository.save(existingUser);
         } else {
             throw new IllegalArgumentException("User with id " + id + " does not exist");
-        }
-    }
-
-    public User getUserByEmailOrPhone(String emailOrPhone) {
-        if (emailOrPhone.contains("@")) {
-            return userRepository.findByEmail(emailOrPhone);
-        } else {
-            return userRepository.findByPhone(emailOrPhone);
         }
     }
 }

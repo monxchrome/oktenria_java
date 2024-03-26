@@ -2,6 +2,7 @@ package com.oktenria.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,30 +33,26 @@ public class JwtService {
         key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-
-    public String generateAccessToken(Authentication authentication, long expSec) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        List<String> roles = authentication.getAuthorities()
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+    public String generateAccess(Authentication authentication, long expSec) {
+        Date expiryDate = new Date(System.currentTimeMillis() + expSec * 1000);
 
         return Jwts.builder()
-                .claim("roles", roles)
-                .setSubject(userDetails.getUsername())
+                .claim("type", "access")
+                .setSubject(authentication.getName())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expSec * 1000))
+                .setExpiration(expiryDate)
                 .signWith(key)
                 .compact();
     }
 
-    public String generateRefreshToken(Authentication authentication, long expSec) {
+    public String generateRefresh(Authentication authentication, long expSec) {
+        Date expiryDate = new Date(System.currentTimeMillis() + expSec * 1000);
+
         return Jwts.builder()
                 .claim("type", "refresh")
                 .setSubject(authentication.getName())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expSec * 1000))
+                .setExpiration(expiryDate)
                 .signWith(key)
                 .compact();
     }

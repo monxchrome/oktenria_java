@@ -1,8 +1,6 @@
 package com.oktenria.controllers;
 
-import com.oktenria.dto.LoginRequestDto;
 import com.oktenria.dto.RefreshDto;
-import com.oktenria.dto.RequestDto;
 import com.oktenria.dto.ResponseDto;
 import com.oktenria.entities.LoginForm;
 import com.oktenria.entities.User;
@@ -14,10 +12,10 @@ import com.oktenria.services.UserService;
 import io.jsonwebtoken.JwtException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,17 +28,12 @@ import java.util.Date;
 import java.util.Map;
 
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 public class AuthController {
     private static final long ACCESS_TOKEN_TTL_SECONDS = 30;
 
     private static final long REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
-
-    private final AuthenticationManager authenticationManager;
-
-    private final UserDetailsService userDetailsService;
-
-    private final UserService userService;
 
     private final AuthService authService;
 
@@ -74,33 +67,28 @@ public class AuthController {
         }
     }
 
-//    @PostMapping("/api/auth/refresh")
-//    public ResponseEntity<ResponseDto> refresh(@RequestBody @Valid RefreshDto refreshDto) {
-//        try {
-//            Date refreshTokenEspirationDate = jwtService.extractExpiration(refreshDto.getRefreshToken());
-//
-//            if (refreshTokenEspirationDate.before(new Date())) {
-//                throw new AuthException("Refresh token has been expired");
-//            }
-//
-//            String username = jwtService.extractUsername(refreshDto.getRefreshToken());
-//            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-//            String accessToken = jwtService.generateAccessToken(userDetails, ACCESS_TOKEN_TTL_SECONDS);
-//            Date accesTokenExpirationDate = jwtService.extractExpiration(refreshDto.getRefreshToken());
-//
-//            ResponseDto responseDto = new ResponseDto();
-//            responseDto.setAccessToken(accessToken);
-//
-//            if (refreshTokenEspirationDate.before(accesTokenExpirationDate)) {
-//                String refreshToken = jwtService.generateRefreshToken(userDetails, REFRESH_TOKEN_TTL_SECONDS);
-//                responseDto.setRefreshToken(refreshToken);
-//            } else {
-//                responseDto.setRefreshToken(refreshDto.getRefreshToken());
-//            }
-//
-//            return ResponseEntity.ok(responseDto);
-//        } catch (JwtException e) {
-//            throw new AuthException(e.getMessage(), e);
-//        }
-//    }
+    @PostMapping("api/auth/refresh")
+    public ResponseEntity<ResponseDto> refreshAccessToken(@RequestBody RefreshDto refreshDto, Authentication authentication) {
+        try {
+            String refreshToken = refreshDto.getRefreshToken();
+
+            Date refreshTokenExpirationDate = jwtService.extractExpiration(refreshToken);
+
+            if (refreshTokenExpirationDate.before(new Date())) {
+                throw new AuthException("Refresh token has expired");
+            }
+
+            String newAccessToken = jwtService.generateAccess(authentication, ACCESS_TOKEN_TTL_SECONDS);
+
+            String newRefreshToken = jwtService.generateRefresh(authentication, REFRESH_TOKEN_TTL_SECONDS);
+
+            ResponseDto responseDto = new ResponseDto();
+            responseDto.setAccessToken(newAccessToken);
+            responseDto.setRefreshToken(newRefreshToken);
+
+            return ResponseEntity.ok(responseDto);
+        } catch (AuthException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 }
