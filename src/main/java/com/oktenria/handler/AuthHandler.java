@@ -27,12 +27,14 @@ public class AuthHandler  implements AuthenticationEntryPoint {
             HttpServletRequest request,
             HttpServletResponse response,
             AuthenticationException authException) throws IOException, ServletException {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        if (!response.isCommitted()) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        objectMapper.writeValue(response.getOutputStream(), ErrorDto.builder()
-                .details(authException.getMessage())
-                .timestamp(System.currentTimeMillis())
-                .build());
+            objectMapper.writeValue(response.getOutputStream(), ErrorDto.builder()
+                    .details(authException.getMessage())
+                    .timestamp(System.currentTimeMillis())
+                    .build());
+        }
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Document("users")
@@ -32,9 +34,16 @@ public class User {
 
     private byte[] image;
 
-    private UserRole role;
+    private Set<UserRole> roles;
 
     private UserSub subscribe;
 
     private Long carId;
+
+    public Set<UserRole> getRoles() {
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        return roles;
+    }
 }

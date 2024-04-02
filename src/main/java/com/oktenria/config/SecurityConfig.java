@@ -2,6 +2,7 @@ package com.oktenria.config;
 
 import com.oktenria.handler.AuthHandler;
 import com.oktenria.security.JwtAuthFilter;
+import com.oktenria.services.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
@@ -37,30 +38,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager inMemoryUserDetailsManager = new InMemoryUserDetailsManager();
-
-        inMemoryUserDetailsManager.createUser(User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin"))
-                .roles("BUYER")
-                .build());
-
-        inMemoryUserDetailsManager.createUser(User.builder()
-                .username("manager")
-                .password(passwordEncoder().encode("manager"))
-                .roles("SELLER")
-                .build());
-
-        return inMemoryUserDetailsManager;
-    }
-
-    @Bean
     public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder,
-                                                         UserDetailsService userDetailsService) {
+                                                         CustomUserDetailsService customUserDetailsService) {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
-        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
 
         return daoAuthenticationProvider;
     }

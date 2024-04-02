@@ -34,7 +34,7 @@ public class UserService {
             existingUser.setPassword(updatedUser.getPassword());
             existingUser.setName(updatedUser.getName());
             existingUser.setImage(updatedUser.getImage());
-            existingUser.setRole(updatedUser.getRole());
+            existingUser.setRoles(updatedUser.getRoles());
             existingUser.setSubscribe(updatedUser.getSubscribe());
 
             userRepository.save(existingUser);
